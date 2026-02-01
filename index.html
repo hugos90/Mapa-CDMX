@@ -88,7 +88,7 @@
     // LÓGICA MEJORADA: EFECTO 3D Y SIN CUADRO AZUL
     // ---------------------------------------------------------
 
-    var map = L.map('map', {
+var map = L.map('map', {
         zoomControl: false, // Opcional: Quita los botones +/- para que se vea más limpio
         doubleClickZoom: false
     }).setView([19.3907, -99.1436], 10);
@@ -198,6 +198,9 @@
                     direction: "center",
                     className: "label-alcaldia"
                 }).openTooltip();
+            }
+        }
+    }).addTo(map);
             }
         }
     }).addTo(map);
