@@ -4,155 +4,237 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mapa Interactivo CDMX</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <style>
-        body {
+        * {
             margin: 0;
-            padding: 20px;
-            font-family: Arial, sans-serif;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: #f5f5f5;
+            padding: 20px;
         }
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
-        svg {
-            width: 100%;
-            height: auto;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-        }
-        .alcaldia {
-            cursor: pointer;
-            fill: #e8f4f8;
-            stroke: #333;
-            stroke-width: 1.5;
-            transition: all 0.2s;
-        }
-        .alcaldia:hover {
-            fill: #ffd700;
-            opacity: 0.8;
-        }
-        .alcaldia.selected {
-            fill: #4CAF50;
-            stroke: #2e7d32;
-            stroke-width: 2;
-        }
-        .label {
-            font-size: 10px;
-            text-anchor: middle;
-            pointer-events: none;
-            font-weight: bold;
-            fill: #333;
-        }
-        .info {
-            margin-top: 15px;
-            padding: 10px;
-            background: #f0f0f0;
-            border-radius: 5px;
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
             text-align: center;
         }
-        .selected-text {
-            color: #4CAF50;
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        #map {
+            width: 100%;
+            height: 500px;
+            z-index: 1;
+        }
+        .info-section {
+            padding: 20px;
+            background: #f9f9f9;
+            border-top: 1px solid #eee;
+        }
+        .selected-badge {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
             font-weight: bold;
+            margin-top: 10px;
+        }
+        .selected-badge.empty {
+            background: #ccc;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Selecciona tu Alcaldía de CDMX</h2>
-        <svg viewBox="0 0 900 700" xmlns="http://www.w3.org/2000/svg">
-            <!-- Fondo -->
-            <rect width="900" height="700" fill="#f9f9f9"/>
-            
-            <!-- Cuauhtémoc (Centro) -->
-            <polygon class="alcaldia" data-delegacion="Cuauhtémoc" points="400,280 450,280 450,330 400,330"/>
-            <text class="label" x="425" y="310">Cuauhtémoc</text>
-            
-            <!-- Benito Juárez -->
-            <polygon class="alcaldia" data-delegacion="Benito Juárez" points="460,280 520,280 520,330 460,330"/>
-            <text class="label" x="490" y="310">B. Juárez</text>
-            
-            <!-- Miguel Hidalgo -->
-            <polygon class="alcaldia" data-delegacion="Miguel Hidalgo" points="380,200 440,200 440,280 380,280"/>
-            <text class="label" x="410" y="245">M. Hidalgo</text>
-            
-            <!-- Álvaro Obregón -->
-            <polygon class="alcaldia" data-delegacion="Álvaro Obregón" points="320,240 380,240 380,330 320,330"/>
-            <text class="label" x="350" y="290">Á. Obregón</text>
-            
-            <!-- Cuajimalpa -->
-            <polygon class="alcaldia" data-delegacion="Cuajimalpa de Morelos" points="280,280 320,280 320,360 280,360"/>
-            <text class="label" x="300" y="325">Cuajimalpa</text>
-            
-            <!-- Azcapotzalco -->
-            <polygon class="alcaldia" data-delegacion="Azcapotzalco" points="340,130 420,130 420,200 340,200"/>
-            <text class="label" x="380" y="170">Azcapotzalco</text>
-            
-            <!-- Gustavo A. Madero -->
-            <polygon class="alcaldia" data-delegacion="Gustavo A. Madero" points="420,130 500,130 500,200 420,200"/>
-            <text class="label" x="460" y="170">G. A. Madero</text>
-            
-            <!-- Iztacalco -->
-            <polygon class="alcaldia" data-delegacion="Iztacalco" points="460,330 520,330 520,380 460,380"/>
-            <text class="label" x="490" y="360">Iztacalco</text>
-            
-            <!-- Iztapalapa -->
-            <polygon class="alcaldia" data-delegacion="Iztapalapa" points="520,280 620,280 620,420 520,420"/>
-            <text class="label" x="570" y="350">Iztapalapa</text>
-            
-            <!-- Venustiano Carranza -->
-            <polygon class="alcaldia" data-delegacion="Venustiano Carranza" points="520,200 600,200 600,280 520,280"/>
-            <text class="label" x="560" y="245">V. Carranza</text>
-            
-            <!-- Coyoacán -->
-            <polygon class="alcaldia" data-delegacion="Coyoacán" points="380,380 480,380 480,480 380,480"/>
-            <text class="label" x="430" y="435">Coyoacán</text>
-            
-            <!-- La Magdalena Contreras -->
-            <polygon class="alcaldia" data-delegacion="La Magdalena Contreras" points="280,360 360,360 360,480 280,480"/>
-            <text class="label" x="320" y="425">L. M. Contreras</text>
-            
-            <!-- Tlalpan -->
-            <polygon class="alcaldia" data-delegacion="Tlalpan" points="360,480 480,480 480,600 360,600"/>
-            <text class="label" x="420" y="545">Tlalpan</text>
-            
-            <!-- Xochimilco -->
-            <polygon class="alcaldia" data-delegacion="Xochimilco" points="480,460 580,460 580,600 480,600"/>
-            <text class="label" x="530" y="535">Xochimilco</text>
-            
-            <!-- Tláhuac -->
-            <polygon class="alcaldia" data-delegacion="Tláhuac" points="580,420 680,420 680,600 580,600"/>
-            <text class="label" x="630" y="515">Tláhuac</text>
-            
-            <!-- Milpa Alta -->
-            <polygon class="alcaldia" data-delegacion="Milpa Alta" points="420,600 520,600 520,680 420,680"/>
-            <text class="label" x="470" y="645">Milpa Alta</text>
-        </svg>
+        <div class="header">
+            <h1>🗺️ Selecciona tu Alcaldía</h1>
+            <p>Haz clic en tu alcaldía en el mapa</p>
+        </div>
         
-        <div class="info">
-            <p>Alcaldía seleccionada: <span class="selected-text" id="selected">Ninguna</span></p>
+        <div id="map"></div>
+        
+        <div class="info-section">
+            <p><strong>Alcaldía seleccionada:</strong></p>
+            <div class="selected-badge empty" id="selectedBadge">Ninguna</div>
         </div>
     </div>
 
     <script>
-        let selectedAlcaldia = null;
+        // Inicializar mapa centrado en CDMX
+        const map = L.map('map').setView([19.4326, -99.1332], 11);
+        
+        // Usar OpenStreetMap como base
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
 
-        document.querySelectorAll('.alcaldia').forEach(alcaldia => {
-            alcaldia.addEventListener('click', function() {
+        let selectedAlcaldia = null;
+        let geoJsonLayer = null;
+
+        // Datos GeoJSON de las alcaldías de CDMX (aproximado)
+        const alcaldiasGeoJSON = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {"name": "Cuauhtémoc"},
+                    "geometry": {"type": "Polygon", "coordinates": [[[-99.1705, 19.4520], [-99.1400, 19.4520], [-99.1400, 19.4150], [-99.1705, 19.4150], [-99.1705, 19.4520]]]}
+                },
+                {
+                    "type": "Feature",
+                    "properties": {"name": "Benito Juárez"},
+                    "geometry": {"type": "Polygon", "coordinates": [[[-99.1400, 19.4520], [-99.1100, 19.4520], [-99.1100, 19.4150], [-99.1400, 19.4150], [-99.1400, 19.4520]]]}
+                },
+                {
+                    "type": "Feature",
+                    "properties": {"name": "Miguel Hidalgo"},
+                    "geometry": {"type": "Polygon", "coordinates": [[[-99.1900, 19.4900], [-99.1500, 19.4900], [-99.1500, 19.4520], [-99.1900, 19.4520], [-99.1900, 19.4900]]]}
+                },
+                {
+                    "type": "Feature",
+                    "properties": {"name": "Álvaro Obregón"},
+                    "geometry": {"type": "Polygon", "coordinates": [[[-99.2400, 19.4700], [-99.1900, 19.4700], [-99.1900, 19.4000], [-99.2400, 19.4000], [-99.2400, 19.4700]]]}
+                },
+                {
+                    "type": "Feature",
+                    "properties": {"name": "Azcapotzalco"},
+                    "geometry": {"type": "Polygon", "coordinates": [[[-99.1900, 19.5200], [-99.1500, 19.5200], [-99.1500, 19.4900], [-99.1900, 19.4900], [-99.1900, 19.5200]]]}
+                },
+                {
+                    "type": "Feature",
+                    "properties": {"name": "Gustavo A. Madero"},
+                    "geometry": {"type": "Polygon", "coordinates": [[[-99.1500, 19.5200], [-99.1000, 19.5200], [-99.1000, 19.4900], [-99.1500, 19.4900], [-99.1500, 19.5200]]]}
+                },
+                {
+                    "type": "Feature",
+                    "properties": {"name": "Iztacalco"},
+                    "geometry": {"type": "Polygon", "coordinates": [[[-99.1100, 19.4520], [-99.0800, 19.4520], [-99.0800, 19.4150], [-99.1100, 19.4150], [-99.1100, 19.4520]]]}
+                },
+                {
+                    "type": "Feature",
+                    "properties": {"name": "Iztapalapa"},
+                    "geometry": {"type": "Polygon", "coordinates": [[[-99.0800, 19.4520], [-99.0300, 19.4520], [-99.0300, 19.3500], [-99.0800, 19.3500], [-99.0800, 19.4520]]]}
+                },
+                {
+                    "type": "Feature",
+                    "properties": {"name": "Venustiano Carranza"},
+                    "geometry": {"type": "Polygon", "coordinates": [[[-99.0800, 19.4900], [-99.0500, 19.4900], [-99.0500, 19.4520], [-99.0800, 19.4520], [-99.0800, 19.4900]]]}
+                },
+                {
+                    "type": "Feature",
+                    "properties": {"name": "Coyoacán"},
+                    "geometry": {"type": "Polygon", "coordinates": [[[-99.1900, 19.3600], [-99.1100, 19.3600], [-99.1100, 19.2800], [-99.1900, 19.2800], [-99.1900, 19.3600]]]}
+                },
+                {
+                    "type": "Feature",
+                    "properties": {"name": "La Magdalena Contreras"},
+                    "geometry": {"type": "Polygon", "coordinates": [[[-99.2500, 19.3600], [-99.1900, 19.3600], [-99.1900, 19.2700], [-99.2500, 19.2700], [-99.2500, 19.3600]]]}
+                },
+                {
+                    "type": "Feature",
+                    "properties": {"name": "Tlalpan"},
+                    "geometry": {"type": "Polygon", "coordinates": [[[-99.1900, 19.2800], [-99.1100, 19.2800], [-99.1100, 19.1600], [-99.1900, 19.1600], [-99.1900, 19.2800]]]}
+                },
+                {
+                    "type": "Feature",
+                    "properties": {"name": "Xochimilco"},
+                    "geometry": {"type": "Polygon", "coordinates": [[[-99.1100, 19.2800], [-99.0300, 19.2800], [-99.0300, 19.1600], [-99.1100, 19.1600], [-99.1100, 19.2800]]]}
+                },
+                {
+                    "type": "Feature",
+                    "properties": {"name": "Tláhuac"},
+                    "geometry": {"type": "Polygon", "coordinates": [[[-99.0300, 19.2800], [-98.9500, 19.2800], [-98.9500, 19.1500], [-99.0300, 19.1500], [-99.0300, 19.2800]]]}
+                },
+                {
+                    "type": "Feature",
+                    "properties": {"name": "Milpa Alta"},
+                    "geometry": {"type": "Polygon", "coordinates": [[[-99.1100, 19.1600], [-99.0300, 19.1600], [-99.0300, 19.0400], [-99.1100, 19.0400], [-99.1100, 19.1600]]]}
+                },
+                {
+                    "type": "Feature",
+                    "properties": {"name": "Cuajimalpa de Morelos"},
+                    "geometry": {"type": "Polygon", "coordinates": [[[-99.2800, 19.4200], [-99.2400, 19.4200], [-99.2400, 19.3300], [-99.2800, 19.3300], [-99.2800, 19.4200]]]}
+                }
+            ]
+        };
+
+        // Función para estilizar las alcaldías
+        function getStyle(feature) {
+            return {
+                fillColor: feature.properties.isSelected ? '#4CAF50' : '#3b82f6',
+                weight: 2,
+                opacity: 1,
+                color: '#1e40af',
+                dashArray: '3',
+                fillOpacity: feature.properties.isSelected ? 0.9 : 0.5
+            };
+        }
+
+        // Función cuando se hace hover
+        function onEachFeature(feature, layer) {
+            layer.on('mouseover', function() {
+                this.setStyle({
+                    fillOpacity: 0.8,
+                    weight: 3,
+                    color: '#fbbf24'
+                });
+            });
+
+            layer.on('mouseout', function() {
+                const isSelected = selectedAlcaldia === feature.properties.name;
+                this.setStyle({
+                    fillColor: isSelected ? '#4CAF50' : '#3b82f6',
+                    fillOpacity: isSelected ? 0.9 : 0.5,
+                    weight: 2,
+                    color: '#1e40af'
+                });
+            });
+
+            layer.on('click', function() {
                 // Remover selección anterior
-                document.querySelectorAll('.alcaldia.selected').forEach(el => el.classList.remove('selected'));
-                
-                // Seleccionar la actual
-                this.classList.add('selected');
-                selectedAlcaldia = this.getAttribute('data-delegacion');
-                
-                // Actualizar el texto
-                document.getElementById('selected').textContent = selectedAlcaldia;
-                
+                if (geoJsonLayer) {
+                    geoJsonLayer.eachLayer(l => {
+                        l.setStyle({
+                            fillColor: '#3b82f6',
+                            fillOpacity: 0.5,
+                            weight: 2
+                        });
+                    });
+                }
+
+                // Seleccionar nueva
+                selectedAlcaldia = feature.properties.name;
+                this.setStyle({
+                    fillColor: '#4CAF50',
+                    fillOpacity: 0.9,
+                    weight: 3
+                });
+
+                // Actualizar badge
+                const badge = document.getElementById('selectedBadge');
+                badge.textContent = selectedAlcaldia;
+                badge.classList.remove('empty');
+
                 // Enviar al formulario padre (iframe)
                 if (window.parent !== window) {
                     window.parent.postMessage({
@@ -161,7 +243,19 @@
                     }, '*');
                 }
             });
-        });
+
+            // Agregar tooltip con el nombre
+            layer.bindPopup(`<strong>${feature.properties.name}</strong>`, {
+                closeButton: false,
+                autoClose: true
+            });
+        }
+
+        // Agregar GeoJSON al mapa
+        geoJsonLayer = L.geoJSON(alcaldiasGeoJSON, {
+            style: getStyle,
+            onEachFeature: onEachFeature
+        }).addTo(map);
     </script>
 </body>
 </html>
