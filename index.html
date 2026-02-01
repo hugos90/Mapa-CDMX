@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Interactivo CDMX</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        svg {
+            width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .alcaldia {
+            cursor: pointer;
+            fill: #e8f4f8;
+            stroke: #333;
+            stroke-width: 1.5;
+            transition: all 0.2s;
+        }
+        .alcaldia:hover {
+            fill: #ffd700;
+            opacity: 0.8;
+        }
+        .alcaldia.selected {
+            fill: #4CAF50;
+            stroke: #2e7d32;
+            stroke-width: 2;
+        }
+        .label {
+            font-size: 10px;
+            text-anchor: middle;
+            pointer-events: none;
+            font-weight: bold;
+            fill: #333;
+        }
+        .info {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .selected-text {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Selecciona tu Alcaldía de CDMX</h2>
+        <svg viewBox="0 0 900 700" xmlns="http://www.w3.org/2000/svg">
+            <!-- Fondo -->
+            <rect width="900" height="700" fill="#f9f9f9"/>
+            
+            <!-- Cuauhtémoc (Centro) -->
+            <polygon class="alcaldia" data-delegacion="Cuauhtémoc" points="400,280 450,280 450,330 400,330"/>
+            <text class="label" x="425" y="310">Cuauhtémoc</text>
+            
+            <!-- Benito Juárez -->
+            <polygon class="alcaldia" data-delegacion="Benito Juárez" points="460,280 520,280 520,330 460,330"/>
+            <text class="label" x="490" y="310">B. Juárez</text>
+            
+            <!-- Miguel Hidalgo -->
+            <polygon class="alcaldia" data-delegacion="Miguel Hidalgo" points="380,200 440,200 440,280 380,280"/>
+            <text class="label" x="410" y="245">M. Hidalgo</text>
+            
+            <!-- Álvaro Obregón -->
+            <polygon class="alcaldia" data-delegacion="Álvaro Obregón" points="320,240 380,240 380,330 320,330"/>
+            <text class="label" x="350" y="290">Á. Obregón</text>
+            
+            <!-- Cuajimalpa -->
+            <polygon class="alcaldia" data-delegacion="Cuajimalpa de Morelos" points="280,280 320,280 320,360 280,360"/>
+            <text class="label" x="300" y="325">Cuajimalpa</text>
+            
+            <!-- Azcapotzalco -->
+            <polygon class="alcaldia" data-delegacion="Azcapotzalco" points="340,130 420,130 420,200 340,200"/>
+            <text class="label" x="380" y="170">Azcapotzalco</text>
+            
+            <!-- Gustavo A. Madero -->
+            <polygon class="alcaldia" data-delegacion="Gustavo A. Madero" points="420,130 500,130 500,200 420,200"/>
+            <text class="label" x="460" y="170">G. A. Madero</text>
+            
+            <!-- Iztacalco -->
+            <polygon class="alcaldia" data-delegacion="Iztacalco" points="460,330 520,330 520,380 460,380"/>
+            <text class="label" x="490" y="360">Iztacalco</text>
+            
+            <!-- Iztapalapa -->
+            <polygon class="alcaldia" data-delegacion="Iztapalapa" points="520,280 620,280 620,420 520,420"/>
+            <text class="label" x="570" y="350">Iztapalapa</text>
+            
+            <!-- Venustiano Carranza -->
+            <polygon class="alcaldia" data-delegacion="Venustiano Carranza" points="520,200 600,200 600,280 520,280"/>
+            <text class="label" x="560" y="245">V. Carranza</text>
+            
+            <!-- Coyoacán -->
+            <polygon class="alcaldia" data-delegacion="Coyoacán" points="380,380 480,380 480,480 380,480"/>
+            <text class="label" x="430" y="435">Coyoacán</text>
+            
+            <!-- La Magdalena Contreras -->
+            <polygon class="alcaldia" data-delegacion="La Magdalena Contreras" points="280,360 360,360 360,480 280,480"/>
+            <text class="label" x="320" y="425">L. M. Contreras</text>
+            
+            <!-- Tlalpan -->
+            <polygon class="alcaldia" data-delegacion="Tlalpan" points="360,480 480,480 480,600 360,600"/>
+            <text class="label" x="420" y="545">Tlalpan</text>
+            
+            <!-- Xochimilco -->
+            <polygon class="alcaldia" data-delegacion="Xochimilco" points="480,460 580,460 580,600 480,600"/>
+            <text class="label" x="530" y="535">Xochimilco</text>
+            
+            <!-- Tláhuac -->
+            <polygon class="alcaldia" data-delegacion="Tláhuac" points="580,420 680,420 680,600 580,600"/>
+            <text class="label" x="630" y="515">Tláhuac</text>
+            
+            <!-- Milpa Alta -->
+            <polygon class="alcaldia" data-delegacion="Milpa Alta" points="420,600 520,600 520,680 420,680"/>
+            <text class="label" x="470" y="645">Milpa Alta</text>
+        </svg>
+        
+        <div class="info">
+            <p>Alcaldía seleccionada: <span class="selected-text" id="selected">Ninguna</span></p>
+        </div>
+    </div>
+
+    <script>
+        let selectedAlcaldia = null;
+
+        document.querySelectorAll('.alcaldia').forEach(alcaldia => {
+            alcaldia.addEventListener('click', function() {
+                // Remover selección anterior
+                document.querySelectorAll('.alcaldia.selected').forEach(el => el.classList.remove('selected'));
+                
+                // Seleccionar la actual
+                this.classList.add('selected');
+                selectedAlcaldia = this.getAttribute('data-delegacion');
+                
+                // Actualizar el texto
+                document.getElementById('selected').textContent = selectedAlcaldia;
+                
+                // Enviar al formulario padre (iframe)
+                if (window.parent !== window) {
+                    window.parent.postMessage({
+                        type: 'delegacion-selected',
+                        delegacion: selectedAlcaldia
+                    }, '*');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
