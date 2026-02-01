@@ -1,0 +1,117 @@
+// ---------------------------------------------------------
+    // LÓGICA MEJORADA: EFECTO 3D Y SIN CUADRO AZUL
+    // ---------------------------------------------------------
+
+    var map = L.map('map', {
+        zoomControl: false, // Opcional: Quita los botones +/- para que se vea más limpio
+        doubleClickZoom: false
+    }).setView([19.3907, -99.1436], 10);
+
+    // Mapa base limpio
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '', maxZoom: 19
+    }).addTo(map);
+
+    var selectedLayers = [];
+    var selectedNames = [];
+
+    // ESTILO NORMAL (AZULITO TENUE)
+    function style(feature) {
+        return {
+            fillColor: '#4A90E2', 
+            weight: 1,
+            opacity: 1,
+            color: 'white',
+            dashArray: '',
+            fillOpacity: 0.4,
+            className: '' // Limpiamos clases
+        };
+    }
+
+    // EFECTO AL PASAR EL MOUSE (HOVER)
+    function highlightFeature(e) {
+        var layer = e.target;
+        if (!selectedLayers.includes(layer)) {
+            layer.setStyle({
+                weight: 3,
+                color: '#666',
+                fillOpacity: 0.6
+            });
+            layer.bringToFront(); 
+        }
+    }
+
+    function resetHighlight(e) {
+        var layer = e.target;
+        if (!selectedLayers.includes(layer)) {
+            geojson.resetStyle(layer);
+        }
+    }
+
+    // EFECTO AL DAR CLIC (SELECCIÓN)
+    function selectFeature(e) {
+        var layer = e.target;
+        var name = layer.feature.properties.NOMGEO;
+
+        if (selectedLayers.includes(layer)) {
+            // DESELECCIONAR
+            selectedLayers = selectedLayers.filter(l => l !== layer);
+            selectedNames = selectedNames.filter(n => n !== name);
+            
+            // Volver al estilo original
+            geojson.resetStyle(layer);
+            
+            // IMPORTANTE: Quitamos el efecto 3D eliminando el filtro CSS manual
+            if (layer._path) { layer._path.style.filter = ''; }
+
+        } else {
+            // SELECCIONAR
+            selectedLayers.push(layer);
+            selectedNames.push(name);
+
+            // Estilo visual: Naranja vibrante
+            layer.setStyle({
+                fillColor: '#FF6B6B', // Color salmón/naranja moderno
+                color: '#333',
+                weight: 2,
+                fillOpacity: 0.9
+            });
+
+            // TRUCO DE MAGIA: Agregar sombra CSS directamente al elemento SVG
+            // Esto hace que parezca que "flota" sobre el mapa
+            if (layer._path) {
+                layer._path.style.filter = 'drop-shadow(3px 5px 5px rgba(0,0,0,0.4))';
+            }
+
+            layer.bringToFront();
+        }
+        updateInfoBox();
+    }
+
+    function updateInfoBox() {
+        var display = document.getElementById('display-zonas');
+        var input = document.getElementById('zonas-output');
+        var text = selectedNames.join(', ') || "Ninguna seleccionada";
+        display.innerHTML = text;
+        input.value = text;
+    }
+
+    var geojson = L.geoJson(cdmxData, {
+        style: style,
+        onEachFeature: function(feature, layer) {
+            layer.on({
+                mouseover: highlightFeature,
+                mouseout: resetHighlight,
+                click: selectFeature
+            });
+
+            // TEXTOS FIJOS SIEMPRE VISIBLES
+            if (feature.properties && feature.properties.NOMGEO) {
+                layer.bindTooltip(feature.properties.NOMGEO, {
+                    permanent: true,
+                    direction: "center",
+                    className: "label-alcaldia"
+                }).openTooltip();
+            }
+        }
+    }).addTo(map);
