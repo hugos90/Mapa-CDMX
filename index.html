@@ -59,58 +59,104 @@
         // LÓGICA DEL MAPA (No toques nada de aquí para abajo)
         // ---------------------------------------------------------
         
-        var map = L.map('map').setView([19.3907, -99.1436], 10);
+var map = L.map('map').setView([19.3907, -99.1436], 10);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap &copy; CARTO',
+        maxZoom: 19
+    }).addTo(map);
 
-        var selectedLayers = [];
+    var selectedLayers = [];
+    var selectedNames = [];
 
-        function style(feature) {
-            return { fillColor: '#3388ff', weight: 2, opacity: 1, color: 'white', fillOpacity: 0.2 };
+    // 2. Estilos visuales
+    function style(feature) {
+        return {
+            fillColor: '#3388ff',
+            weight: 2,
+            opacity: 1,
+            color: 'white',
+            dashArray: '3',
+            fillOpacity: 0.2
+        };
+    }
+
+    // 3. Funciones de interacción
+    function highlightFeature(e) {
+        var layer = e.target;
+        if (!selectedLayers.includes(layer)) {
+            layer.setStyle({
+                weight: 5,
+                color: '#666',
+                dashArray: '',
+                fillOpacity: 0.5
+            });
         }
+    }
 
-        function highlightFeature(e) {
-            if (!selectedLayers.includes(e.target)) {
-                e.target.setStyle({ weight: 5, color: '#666', fillOpacity: 0.5 });
-            }
+    function resetHighlight(e) {
+        var layer = e.target;
+        if (!selectedLayers.includes(layer)) {
+            geojson.resetStyle(layer);
         }
+    }
 
-        function resetHighlight(e) {
-            if (!selectedLayers.includes(e.target)) {
-                geojson.resetStyle(e.target);
-            }
+    function selectFeature(e) {
+        var layer = e.target;
+        
+        // --- AQUÍ ESTÁ LA CORRECCIÓN CLAVE ---
+        // Usamos "NOMGEO" que es lo que viene en tu archivo
+        var name = layer.feature.properties.NOMGEO; 
+        // -------------------------------------
+
+        if (selectedLayers.includes(layer)) {
+            // Si ya estaba seleccionado, lo quitamos
+            selectedLayers = selectedLayers.filter(l => l !== layer);
+            selectedNames = selectedNames.filter(n => n !== name);
+            geojson.resetStyle(layer);
+        } else {
+            // Si es nuevo, lo agregamos
+            selectedLayers.push(layer);
+            selectedNames.push(name);
+            layer.setStyle({
+                fillColor: '#ff7800',
+                color: '#000',
+                weight: 3,
+                fillOpacity: 0.7
+            });
         }
+        updateInfoBox();
+    }
 
-        function selectFeature(e) {
-            var layer = e.target;
-            if (selectedLayers.includes(layer)) {
-                selectedLayers = selectedLayers.filter(l => l !== layer);
-                geojson.resetStyle(layer);
-            } else {
-                selectedLayers.push(layer);
-                layer.setStyle({ fillColor: '#ff7800', color: '#000', weight: 3, fillOpacity: 0.7 });
-            }
-            updateInfo();
+    function updateInfoBox() {
+        var display = document.getElementById('display-zonas');
+        var input = document.getElementById('zonas-output');
+        
+        if (selectedNames.length === 0) {
+            display.innerHTML = "Ninguna seleccionada";
+            input.value = "";
+        } else {
+            var text = selectedNames.join(', ');
+            display.innerHTML = text;
+            input.value = text;
         }
+    }
 
-        function updateInfo() {
-            var names = selectedLayers.map(l => l.feature.properties.nom_mun || l.feature.properties.NOMBRE || "Zona"); 
-            document.getElementById('display-zonas').innerHTML = names.join(', ') || "Ninguna";
-        }
+    function onEachFeature(feature, layer) {
+        layer.on({
+            mouseover: highlightFeature,
+            mouseout: resetHighlight,
+            click: selectFeature
+        });
+        // --- AQUÍ TAMBIÉN USAMOS NOMGEO PARA LA ETIQUETA ---
+        layer.bindTooltip(feature.properties.NOMGEO, {sticky: true});
+    }
 
-        var geojson = L.geoJson(cdmxData, {
-            style: style,
-            onEachFeature: function(feature, layer) {
-                layer.on({
-                    mouseover: highlightFeature,
-                    mouseout: resetHighlight,
-                    click: selectFeature
-                });
-            }
-        }).addTo(map);
+    // 4. Cargar los datos al mapa
+    var geojson = L.geoJson(cdmxData, {
+        style: style,
+        onEachFeature: onEachFeature
+    }).addTo(map);
     </script>
 </body>
 </html>
