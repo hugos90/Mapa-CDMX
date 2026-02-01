@@ -84,13 +84,15 @@
 ]
 };
         
+
 // ---------------------------------------------------------
-    // LÓGICA MEJORADA: EFECTO 3D Y SIN CUADRO AZUL
+    // PEGA ESTO JUSTO DEBAJO DE DONDE TERMINA TU CÓDIGO GIGANTE
+    // (Debajo de la línea: var cdmxData = { ... }; )
     // ---------------------------------------------------------
 
-var map = L.map('map').setView([19.3907, -99.1436], 10);
+    // 1. Configuración inicial del mapa
+    var map = L.map('map').setView([19.3907, -99.1436], 10);
 
-    // Mapa base muy limpio y claro (CartoDB Positron)
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OpenStreetMap &copy; CARTO',
         maxZoom: 19
@@ -99,38 +101,33 @@ var map = L.map('map').setView([19.3907, -99.1436], 10);
     var selectedLayers = [];
     var selectedNames = [];
 
-    // ESTILO BASE (Cómo se ve normal)
+    // 2. Estilos visuales
     function style(feature) {
         return {
-            fillColor: '#6CB4EE',  // Azul suave por defecto
-            weight: 1,             // Borde delgado
+            fillColor: '#3388ff',
+            weight: 2,
             opacity: 1,
-            color: 'white',        // Borde blanco
-            dashArray: '',
-            fillOpacity: 0.4       // Transparente para ver el mapa de fondo
+            color: 'white',
+            dashArray: '3',
+            fillOpacity: 0.2
         };
     }
 
-    // ESTILO AL PASAR EL MOUSE (Efecto "Levantar")
+    // 3. Funciones de interacción
     function highlightFeature(e) {
         var layer = e.target;
-        
-        // Solo aplicamos efecto si NO está seleccionada (para no confundir)
         if (!selectedLayers.includes(layer)) {
             layer.setStyle({
-                weight: 4,              // Borde grueso
-                color: '#666',          // Borde gris oscuro
+                weight: 5,
+                color: '#666',
                 dashArray: '',
-                fillOpacity: 0.7,       // Se vuelve más sólido
-                fillColor: '#89CFF0'    // Se ilumina un poco
+                fillOpacity: 0.5
             });
-            layer.bringToFront(); // ESTO HACE QUE SE PONGA ENCIMA DE LAS OTRAS
         }
     }
 
     function resetHighlight(e) {
         var layer = e.target;
-        // Solo reseteamos si NO está seleccionada definitivamente
         if (!selectedLayers.includes(layer)) {
             geojson.resetStyle(layer);
         }
@@ -138,24 +135,27 @@ var map = L.map('map').setView([19.3907, -99.1436], 10);
 
     function selectFeature(e) {
         var layer = e.target;
+        
+        // --- AQUÍ ESTÁ LA CORRECCIÓN CLAVE ---
+        // Usamos "NOMGEO" que es lo que viene en tu archivo
         var name = layer.feature.properties.NOMGEO; 
+        // -------------------------------------
 
         if (selectedLayers.includes(layer)) {
-            // DESELECCIONAR
+            // Si ya estaba seleccionado, lo quitamos
             selectedLayers = selectedLayers.filter(l => l !== layer);
             selectedNames = selectedNames.filter(n => n !== name);
-            geojson.resetStyle(layer); // Vuelve a la normalidad
+            geojson.resetStyle(layer);
         } else {
-            // SELECCIONAR (Efecto final de "Elegido")
+            // Si es nuevo, lo agregamos
             selectedLayers.push(layer);
             selectedNames.push(name);
             layer.setStyle({
-                fillColor: '#FF7F50', // Naranja Coral (Color de éxito/selección)
-                color: '#333',        // Borde casi negro
-                weight: 3,            // Borde mediano
-                fillOpacity: 0.8      // Muy sólido
+                fillColor: '#ff7800',
+                color: '#000',
+                weight: 3,
+                fillOpacity: 0.7
             });
-            layer.bringToFront();
         }
         updateInfoBox();
     }
@@ -174,23 +174,21 @@ var map = L.map('map').setView([19.3907, -99.1436], 10);
         }
     }
 
-    // CARGAR DATOS
+    function onEachFeature(feature, layer) {
+        layer.on({
+            mouseover: highlightFeature,
+            mouseout: resetHighlight,
+            click: selectFeature
+        });
+        // --- AQUÍ TAMBIÉN USAMOS NOMGEO PARA LA ETIQUETA ---
+        layer.bindTooltip(feature.properties.NOMGEO, {sticky: true});
+    }
+
+    // 4. Cargar los datos al mapa
     var geojson = L.geoJson(cdmxData, {
         style: style,
-        onEachFeature: function(feature, layer) {
-            layer.on({
-                mouseover: highlightFeature,
-                mouseout: resetHighlight,
-                click: selectFeature
-            });
-
-            // --- AQUÍ ESTÁ EL TRUCO DE LOS TEXTOS FIJOS ---
-            if (feature.properties && feature.properties.NOMGEO) {
-                layer.bindTooltip(feature.properties.NOMGEO, {
-                    permanent: true,      // SIEMPRE VISIBLE
-                    direction: "center",  // En el centro del polígono
-                    className: "label-alcaldia" // Usamos el estilo CSS transparente
-                }).openTooltip();
+        onEachFeature: onEachFeature
+    }).addTo(map);
             }
         }
     }).addTo(map);
